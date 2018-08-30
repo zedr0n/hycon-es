@@ -1,0 +1,135 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Reactive.Linq;
+using System.Reactive.Subjects;
+using System.Threading.Tasks;
+using Hycon.EventStore.Redis.Extensions;
+using Hycon.Infrastructure.Domain;
+using Hycon.Infrastructure.Exceptions;
+using Hycon.Infrastructure.Streams;
+using Hycon.Interfaces;
+using Hycon.Interfaces.EventStore;
+using Hycon.Interfaces.Messaging;
+using Newtonsoft.Json;
+using StackExchange.Redis;
+
+namespace Hycon.EventStore.Redis
+{
+    public class RedisEventStore : IEventStore
+    {
+        private static readonly JsonSerializerSettings JsonSerializerSettings = new JsonSerializerSettings { TypeNameHandling = TypeNameHandling.All };
+
+        private readonly IMessageQueue _messageQueue;
+        private readonly IRedisConnection _redis;
+        private readonly RedisKey _streamsKey = "streams";
+
+        public RedisEventStore(IMessageQueue messageQueue, IRedisConnection redis)
+        {
+            _messageQueue = messageQueue;
+            _redis = redis;
+            
+            Streams = Observable.Create(async (IObserver<IStream> observer) =>
+            {
+                var values = await Db.HashValuesAsync(_streamsKey); 
+                foreach (var value in values)
+                {
+                    var stream = JsonConvert.DeserializeObject<IStream>(value); 
+                    observer.OnNext(stream);                   
+                }
+                _streams.Subscribe(observer.OnNext);
+            }); 
+        }
+
+        private IDatabase Db => _redis.Database;
+
+        public IObservable<IStream> Streams { get; } 
+        private readonly Subject<IStream> _streams = new Subject<IStream>();
+
+        private async Task UpdateStream(IStream stream)
+        {
+            await Db.HashSetAsync(_streamsKey, stream.Key.ToString(),
+                JsonConvert.SerializeObject(stream, JsonSerializerSettings));
+            
+            _streams.OnNext(stream);
+        }
+        
+        public async Task<IEnumerable<IEvent>> ReadStream(IStream stream, long start, int count = -1)
+        {
+            var commits = await Db.ListRangeAsync(stream.Key.ToString(),start, count == -1 ? -1 : start+count);
+            
+            //Retrieve event data 
+            var eventTasks = commits.Select(commit =>
+            {
+                var partition = commit.ToString().CalculatePartition();
+
+                var hashGetTask = _redis.Database.HashGetAsync(partition, commit);
+                return hashGetTask;
+            });
+            var commitList = await Task.WhenAll(eventTasks).ConfigureAwait(false);
+
+            //Get the events
+            var events = commitList.Select(serializedEvent => JsonConvert.DeserializeObject<IEvent>(serializedEvent.ToString(), JsonSerializerSettings))
+                .OrderBy(x => x.Timestamp)
+                .ToList();
+            
+            //Get the events
+            return events;
+        }
+
+        public async Task WriteStream(IStream stream, IEnumerable<IEvent> events)
+        {                        
+            foreach (var @event in events)
+            {
+                var listKey = stream.Key.ToString();
+                var eventId = @event.EventId.ToString(); 
+
+                var serializedEvent = JsonConvert.SerializeObject(@event, JsonSerializerSettings);
+
+                var hashKey = eventId.CalculatePartition();
+
+                // write the event using hash key
+                await Db.HashSetAsync(hashKey, eventId, serializedEvent).ConfigureAwait(false);
+
+                // append the event id to stream 
+                var transaction = _redis.Database.CreateTransaction();
+                var streamLength = await Db.ListLengthAsync(listKey).ConfigureAwait(false);                
+                transaction.ListRightPushAsync(listKey, eventId).ConfigureAwait(false);
+                transaction.AddCondition(Condition.ListLengthEqual(listKey, streamLength));
+
+                try
+                {
+                    //Execute the commit list and publish transactions
+                    if (await transaction.ExecuteAsync().ConfigureAwait(false))
+                    {
+                        try
+                        {
+                            await _messageQueue.PublishAsync(@event).ConfigureAwait(false);
+                            stream.Version++;
+                            return;
+                        }
+                        catch
+                        {
+                            await Db.ListRemoveAsync(listKey, eventId, -1).ConfigureAwait(false);
+                            throw;
+                        }
+                    }
+                }
+                catch
+                {
+                    //The commit list push transaction failed so delete the entry from the event store hash
+                    await Db.HashDeleteAsync(hashKey, eventId).ConfigureAwait(false);
+                    throw;
+                }
+
+                //The commit list push transaction failed so delete the entry from the event store hash
+                await Db.HashDeleteAsync(hashKey, eventId).ConfigureAwait(false);
+
+                throw new ConcurrencyException(stream.Key);
+            }
+
+            //stream.Version += events.Count(); 
+            await UpdateStream(stream);
+        }
+    }
+}

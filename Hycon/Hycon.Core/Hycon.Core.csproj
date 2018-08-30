@@ -4,4 +4,13 @@
         <TargetFramework>netstandard2.0</TargetFramework>
     </PropertyGroup>
 
+    <ItemGroup>
+      <Folder Include="Blocks\Commands" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\Hycon.Infrastructure\Hycon.Infrastructure.csproj" />
+      <ProjectReference Include="..\Hycon.Interfaces\Hycon.Interfaces.csproj" />
+    </ItemGroup>
+
 </Project>
