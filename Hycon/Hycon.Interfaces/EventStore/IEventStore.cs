@@ -10,6 +10,11 @@ namespace Hycon.Interfaces.EventStore
         /// Stream details channel 
         /// </summary>
         IObservable<IStream> Streams { get; }       
+        /// <summary>
+        /// Batched stream details
+        /// Length > 1 when event store is rehydrated
+        /// </summary>
+        IObservable<List<IStream>> BatchStreams { get; }
 
         /// <summary>
         /// Read specified number of events from the stream forward from starting version 

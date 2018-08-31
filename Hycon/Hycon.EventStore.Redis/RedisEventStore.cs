@@ -38,12 +38,22 @@ namespace Hycon.EventStore.Redis
                     observer.OnNext(stream);                   
                 }
                 _streams.Subscribe(observer.OnNext);
-            }); 
+            });
+
+            BatchStreams = Observable.Create(async (IObserver<List<IStream>> observer) =>
+            {
+                var values = await Db.HashValuesAsync(_streamsKey);
+                var streams = values.Select(s => JsonConvert.DeserializeObject<IStream>(s, JsonSerializerSettings))
+                    .ToList();
+                observer.OnNext(streams);
+                _streams.Subscribe(s => observer.OnNext(new List<IStream> { s }));
+            });
         }
 
         private IDatabase Db => _redis.Database;
 
         public IObservable<IStream> Streams { get; } 
+        public IObservable<List<IStream>> BatchStreams { get; }
         private readonly Subject<IStream> _streams = new Subject<IStream>();
 
         private async Task UpdateStream(IStream stream)
