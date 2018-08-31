@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
@@ -63,11 +64,9 @@ namespace Hycon.EventStore.Redis
             
             _streams.OnNext(stream);
         }
-        
-        public async Task<IEnumerable<IEvent>> ReadStream(IStream stream, long start, int count = -1)
+
+        private async Task<List<IEvent>> ReadEvents(IEnumerable<RedisValue> commits)
         {
-            var commits = await Db.ListRangeAsync(stream.Key.ToString(),start, count == -1 ? -1 : start+count);
-            
             //Retrieve event data 
             var eventTasks = commits.Select(commit =>
             {
@@ -84,6 +83,26 @@ namespace Hycon.EventStore.Redis
                 .ToList();
             
             //Get the events
+            return events;
+        }
+        
+        public async Task<IEnumerable<IEvent>> ReadStream(IStream stream, long start, int count = -1)
+        {
+            var commits = await Db.ListRangeAsync(stream.Key.ToString(),start, count == -1 ? -1 : start+count);
+
+            var events = await ReadEvents(commits).ConfigureAwait(false);
+            return events;
+        }
+        
+        public async Task<IEnumerable<IEvent>> ReadStreams(IStream[] streams, long[] start)
+        {
+            Debug.Assert(streams.Length == start.Length);
+            
+            var commits = new List<RedisValue>();
+            for(var i = 0; i < streams.Length; ++i)
+                commits.AddRange(await Db.ListRangeAsync(streams[i].Key.ToString(),start[i]));
+
+            var events = await ReadEvents(commits).ConfigureAwait(false);
             return events;
         }
 

@@ -25,6 +25,13 @@ namespace Hycon.Interfaces.EventStore
         /// <returns></returns>
         Task<IEnumerable<IEvent>> ReadStream(IStream stream, long start, int count = -1);
         /// <summary>
+        /// Read all events from multiple streams 
+        /// </summary>
+        /// <param name="stream">Target stream</param>
+        /// <param name="start">Starting version for the read</param>
+        /// <returns></returns>
+        Task<IEnumerable<IEvent>> ReadStreams(IStream[] stream, long[] start);
+        /// <summary>
         /// Append events to stream
         /// </summary>
         /// <param name="stream">Target stream</param>

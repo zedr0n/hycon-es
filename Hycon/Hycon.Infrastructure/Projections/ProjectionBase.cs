@@ -1,5 +1,8 @@
 using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Linq;
+using System.Reactive.Linq;
 using System.Threading.Tasks;
 using Hycon.Interfaces;
 using Hycon.Interfaces.EventStore;
@@ -14,25 +17,28 @@ namespace Hycon.Infrastructure.Projections
         public ProjectionBase(IEventStore eventStore)
         {
             _eventStore = eventStore;
-            Streams = _eventStore.Streams;
+            Streams = _eventStore.BatchStreams.Select(s => s.Where(x => true));
         }
 
-        protected virtual IObservable<IStream> Streams { get; }
+        protected virtual IObservable<IEnumerable<IStream>> Streams { get; }
 
-        private async Task Update(IStream s)
+        private async Task Update(IEnumerable<IStream> streams)
         {
-            var version = _streams.GetOrAdd(s.Key, 0);
-            var events = await _eventStore.ReadStream(s, version);
-            foreach (var e in events)
+            var events = new List<IEvent>();
+            foreach (var stream in streams)
             {
-                When(s,e);
-                version++;
+                var version = _streams.GetOrAdd(stream.Key,0);
+                var streamEvents = (await _eventStore.ReadStream(stream, version)).ToList();
+                
+                events.AddRange(streamEvents); 
+                _streams[stream.Key] = version + streamEvents.Count;    
             }
 
-            _streams[s.Key] = version;
+            foreach (var e in events.OrderBy(e => e.Timestamp))
+                When(e);
         }
 
-        protected virtual void When(IStream s, IEvent e)
+        protected virtual void When(IEvent e)
         {
                         
         }
