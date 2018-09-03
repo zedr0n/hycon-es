@@ -1,7 +1,8 @@
 using System.Linq;
 using Hycon.Core.Blocks.Commands;
+using Hycon.Core.Blocks.Projections;
+using Hycon.Core.Blocks.Queries;
 using Hycon.EventStore.Redis;
-using Hycon.Infrastructure.Bus;
 using Hycon.Infrastructure.Clock;
 using Hycon.Infrastructure.Domain;
 using Hycon.Infrastructure.Logging;
@@ -37,6 +38,11 @@ namespace Hycon.CrossCuttingConcerns
             container.Register<IBus,Bus>(Lifestyle.Singleton);
             container.Register<IMessageQueue, MessageQueue>(Lifestyle.Singleton);
             
+            container.Register<BlockListProjection>(Lifestyle.Singleton);
+            container.Register(typeof(IQueryHandler<,>), new[]
+            {
+                typeof(BlockQueryHandler)
+            }, Lifestyle.Singleton);
         }
     }
 }

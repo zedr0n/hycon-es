@@ -9,20 +9,20 @@ using Hycon.Interfaces.EventStore;
 
 namespace Hycon.Infrastructure.Projections
 {
-    public class ProjectionBase
+    public class Projection
     {
         private readonly IEventStore _eventStore;
         private readonly ConcurrentDictionary<Guid, long> _streams = new ConcurrentDictionary<Guid, long>();
 
-        public ProjectionBase(IEventStore eventStore)
+        public Projection(IEventStore eventStore)
         {
             _eventStore = eventStore;
-            Streams = _eventStore.BatchStreams.Select(s => s.Where(x => true));
+            //Streams = _eventStore.BatchStreams;
         }
 
-        protected virtual IObservable<IEnumerable<IStream>> Streams { get; }
+        protected virtual IObservable<IEnumerable<IStream>> Streams { get; set; }
 
-        private async Task Update(IEnumerable<IStream> streams)
+        protected async Task Update(IEnumerable<IStream> streams)
         {
             var events = new List<IEvent>();
             foreach (var stream in streams)
@@ -43,9 +43,9 @@ namespace Hycon.Infrastructure.Projections
                         
         }
         
-        public void Start()
+        protected void Start(IObservable<IEnumerable<IStream>> streams)
         {
-            Streams.Subscribe(async s => await Update(s));
+            streams.Subscribe(async s => await Update(s));
         }
     }
 }

@@ -26,7 +26,8 @@ namespace Hycon.Console
             var root = new CompositionRoot();
             root.ComposeApplication(_container);
             _container.Collection.Register<IHyconListener>(
-                typeof(CreateBlockListener));
+                typeof(CreateBlockListener),
+                typeof(PutBlockListener));
             _container.Verify();
         }
         

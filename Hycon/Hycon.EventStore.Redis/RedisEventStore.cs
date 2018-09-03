@@ -36,7 +36,7 @@ namespace Hycon.EventStore.Redis
                 var values = await Db.HashValuesAsync(_streamsKey); 
                 foreach (var value in values)
                 {
-                    var stream = JsonConvert.DeserializeObject<IStream>(value); 
+                    var stream = JsonConvert.DeserializeObject<IStream>(value,JsonSerializerSettings); 
                     observer.OnNext(stream);                   
                 }
                 _streams.Subscribe(observer.OnNext);
@@ -71,9 +71,8 @@ namespace Hycon.EventStore.Redis
             //Retrieve event data 
             var eventTasks = commits.Select(commit =>
             {
-                var partition = commit.ToString().CalculatePartition();
-
-                var hashGetTask = _redis.Database.HashGetAsync(partition, commit);
+                var hashKey = $"EventStore::${commit.ToString().CalculatePartition()}";
+                var hashGetTask = _redis.Database.HashGetAsync(hashKey, commit);
                 return hashGetTask;
             });
             var commitList = await Task.WhenAll(eventTasks).ConfigureAwait(false);
@@ -89,7 +88,8 @@ namespace Hycon.EventStore.Redis
         
         public async Task<IEnumerable<IEvent>> ReadStream(IStream stream, long start, int count = -1)
         {
-            var commits = await Db.ListRangeAsync(stream.Key.ToString(),start, count == -1 ? -1 : start+count);
+            var listKey = $"EventStore::{stream.Key.ToString()}";
+            var commits = await Db.ListRangeAsync(listKey,start, count == -1 ? -1 : start+count);
 
             var events = await ReadEvents(commits).ConfigureAwait(false);
             return events;
@@ -136,7 +136,7 @@ namespace Hycon.EventStore.Redis
                         {
                             await _messageQueue.PublishAsync(@event).ConfigureAwait(false);
                             stream.Version++;
-                            return;
+                            continue;
                         }
                         catch
                         {

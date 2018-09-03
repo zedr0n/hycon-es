@@ -4,10 +4,11 @@ grammar Hycon;
   Parser rules
 */
 
-command : create;
+command : create | putBlock;
 
 create : CREATE ( createBlock );
 createBlock : BLOCK hash previousHash;
+putBlock : PUT BLOCK hash previousHash;
 
 date : NUMBER NUMBER;
 hash : HASH;
@@ -52,6 +53,7 @@ fragment DIGIT     : [0-9];
 CREATE : C R E A T E;
 BLOCK : B L O C K;
 GUID : G U I D;
+PUT : P U T;
 
 WORD                : (LOWERCASE | UPPERCASE | '-')+ ;
 HASH                : (LOWERCASE | UPPERCASE | DIGIT)+ ;

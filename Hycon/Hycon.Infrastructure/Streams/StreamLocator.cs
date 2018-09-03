@@ -8,7 +8,16 @@ namespace Hycon.Infrastructure.Streams
     public class StreamLocator : IStreamLocator
     {
         private readonly ConcurrentDictionary<Guid, IStream> _streams = new ConcurrentDictionary<Guid, IStream>();
-        
+
+        public StreamLocator(IEventStore eventStore)
+        {
+            eventStore.BatchStreams.Subscribe(streams =>
+            {
+                foreach (var s in streams)
+                    GetOrAdd(s);
+            });
+        }
+
         public Guid Key(IAggregate aggregate)
         {
             return aggregate.Id;
@@ -23,7 +32,7 @@ namespace Hycon.Infrastructure.Streams
         public IStream GetOrAdd(IAggregate aggregate)
         {
             var key = Key(aggregate);
-            var stream = new Stream(key,aggregate.Version);
+            var stream = new Stream(key,aggregate.Version, aggregate.GetType());
             return _streams.GetOrAdd(key, stream);
         }
 

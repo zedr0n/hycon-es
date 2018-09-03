@@ -7,11 +7,13 @@ namespace Hycon.Core.Blocks.Events
 {
     public class BlockCreated : EventBase
     {
+        public Guid BlockId { get; }
         public string Hash { get; }
         public List<string> PreviousHash { get; }
         
-        public BlockCreated(string hash, List<string> previousHash) 
+        public BlockCreated(Guid blockId, string hash, List<string> previousHash)
         {
+            BlockId = blockId;
             Hash = hash;
             PreviousHash = previousHash;
         }

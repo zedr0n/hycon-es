@@ -16,13 +16,15 @@ namespace Hycon.Core.Blocks
         public Block(Guid id, string hash, List<string> previousHash)
         {
             Id = id;
-            When(new BlockCreated(hash, previousHash));
+            When(new BlockCreated(Id, hash, previousHash));
         }
 
         public void PutBlock()
         {
             When( new BlockReceived(Id) ); 
         }
+        
+        protected void ApplyEvent(BlockReceived e) {}
 
         protected void ApplyEvent(BlockCreated e)
         {

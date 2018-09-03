@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Hycon.Core.Blocks.Commands;
-using Hycon.Infrastructure.Bus;
+using Hycon.Infrastructure.Pipes;
 
 namespace Hycon.Console
 {

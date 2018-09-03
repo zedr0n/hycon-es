@@ -13,6 +13,7 @@ namespace Hycon.Interfaces.EventStore
         /// Last stream event version
         /// </summary>
         long Version { get; set; }
+        Type AggregateType { get; set; }
     }
 
     public interface IStreamLocator
