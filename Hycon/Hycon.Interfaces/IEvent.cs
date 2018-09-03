@@ -1,10 +1,8 @@
 using System;
-using Hycon.Interfaces.Messaging;
-using NodaTime;
 
 namespace Hycon.Interfaces
 {
-    public interface IEvent : IMessage
+    public interface IEvent 
     {
         /// <summary>
         /// Unique event id

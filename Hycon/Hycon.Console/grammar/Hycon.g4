@@ -7,11 +7,11 @@ grammar Hycon;
 command : create;
 
 create : CREATE ( createBlock );
-createBlock : hash previousHash;
+createBlock : BLOCK hash previousHash;
 
 date : NUMBER NUMBER;
-hash : WORD;
-previousHash : WORD;
+hash : HASH;
+previousHash : HASH;
 guid : WORD;
 guidOptional : newGuid | WORD;
 newGuid : NEWLINE;
@@ -50,9 +50,11 @@ fragment UPPERCASE  : [A-Z];
 fragment DIGIT     : [0-9];
 
 CREATE : C R E A T E;
+BLOCK : B L O C K;
 GUID : G U I D;
 
 WORD                : (LOWERCASE | UPPERCASE | '-')+ ;
+HASH                : (LOWERCASE | UPPERCASE | DIGIT)+ ;
 WHITESPACE          : (' '|'\t')+ -> skip ;
 NEWLINE             : ('\r'? '\n' | '\r')+ ;
 NUMBER              : DIGIT+;

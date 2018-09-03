@@ -5,6 +5,7 @@ using Hycon.Infrastructure.Bus;
 using Hycon.Infrastructure.Clock;
 using Hycon.Infrastructure.Domain;
 using Hycon.Infrastructure.Logging;
+using Hycon.Infrastructure.Pipes;
 using Hycon.Infrastructure.Streams;
 using Hycon.Interfaces.Domain;
 using Hycon.Interfaces.EventStore;
@@ -20,9 +21,10 @@ namespace Hycon.CrossCuttingConcerns
             // register infrastructure
             container.Register<ILog, ConsoleLog>(Lifestyle.Singleton);
             container.Register<IClock,HighPrecisionClock>(Lifestyle.Singleton);
-            
-            container.Register<IStreamLocator, StreamLocator>();
-            container.Register<IEventStore,RedisEventStore>();
+
+            container.Register<IStreamLocator, StreamLocator>(Lifestyle.Singleton);
+            container.Register<IRedisConnection, LocalRedisConnection>(Lifestyle.Singleton);
+            container.Register<IEventStore,RedisEventStore>(Lifestyle.Singleton);
             container.Register<IDomainRepository,DomainRepository>(Lifestyle.Singleton);
             
             container.Register(typeof(ICommandHandler<>),new[] {
@@ -33,6 +35,7 @@ namespace Hycon.CrossCuttingConcerns
                 !context.AppliedDecorators.Any(d => d.IsClosedTypeOf(typeof(CommandRecorder<>)))); 
             
             container.Register<IBus,Bus>(Lifestyle.Singleton);
+            container.Register<IMessageQueue, MessageQueue>(Lifestyle.Singleton);
             
         }
     }

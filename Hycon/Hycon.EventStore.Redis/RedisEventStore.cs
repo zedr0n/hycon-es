@@ -8,11 +8,11 @@ using System.Threading.Tasks;
 using Hycon.EventStore.Redis.Extensions;
 using Hycon.Infrastructure.Domain;
 using Hycon.Infrastructure.Exceptions;
+using Hycon.Infrastructure.Pipes;
 using Hycon.Infrastructure.Streams;
 using Hycon.Interfaces;
 using Hycon.Interfaces.Domain;
 using Hycon.Interfaces.EventStore;
-using Hycon.Interfaces.Messaging;
 using Newtonsoft.Json;
 using StackExchange.Redis;
 

@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <OutputType>Exe</OutputType>
+        <TargetFramework>netcoreapp2.1</TargetFramework>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\Hycon.CrossCuttingConcerns\Hycon.CrossCuttingConcerns.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="Antlr4.Runtime.Standard" Version="4.7.1.1" />
+      <PackageReference Include="System.Console" Version="4.3.1" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="gen" />
+    </ItemGroup>
+
+</Project>

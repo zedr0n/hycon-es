@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>netstandard2.0</TargetFramework>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <PackageReference Include="SimpleInjector" Version="4.3.0" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\Hycon.Core\Hycon.Core.csproj" />
+      <ProjectReference Include="..\Hycon.EventStore.Redis\Hycon.EventStore.Redis.csproj" />
+      <ProjectReference Include="..\Hycon.Infrastructure\Hycon.Infrastructure.csproj" />
+    </ItemGroup>
+
+</Project>
