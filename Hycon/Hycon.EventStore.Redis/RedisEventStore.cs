@@ -20,7 +20,7 @@ namespace Hycon.EventStore.Redis
 {
     public class RedisEventStore : IEventStore
     {
-        private static readonly JsonSerializerSettings JsonSerializerSettings = new JsonSerializerSettings { TypeNameHandling = TypeNameHandling.All };
+        private static readonly JsonSerializerSettings JsonSerializerSettings = new JsonSerializerSettings { TypeNameHandling = TypeNameHandling.Objects };
 
         private readonly IMessageQueue _messageQueue;
         private readonly IRedisConnection _redis;
