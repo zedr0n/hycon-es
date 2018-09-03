@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Hycon.Interfaces.Domain;
 
 namespace Hycon.Interfaces.EventStore
 {
@@ -37,5 +38,11 @@ namespace Hycon.Interfaces.EventStore
         /// <param name="stream">Target stream</param>
         /// <param name="events">Events to append</param>
         Task WriteStream(IStream stream, IEnumerable<IEvent> events);
+        
+        /// <summary>
+        /// Save the command to command log
+        /// </summary>
+        /// <param name="command"></param>
+        Task AppendCommand(ICommand command);
     }
 }

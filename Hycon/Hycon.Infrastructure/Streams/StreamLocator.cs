@@ -11,7 +11,7 @@ namespace Hycon.Infrastructure.Streams
         
         public Guid Key(IAggregate aggregate)
         {
-            return aggregate.Key;
+            return aggregate.Id;
         }
 
         public IStream Find(Guid key)

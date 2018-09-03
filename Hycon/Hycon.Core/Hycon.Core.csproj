@@ -5,12 +5,12 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <Folder Include="Blocks\Commands" />
+      <ProjectReference Include="..\Hycon.Infrastructure\Hycon.Infrastructure.csproj" />
+      <ProjectReference Include="..\Hycon.Interfaces\Hycon.Interfaces.csproj" />
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\Hycon.Infrastructure\Hycon.Infrastructure.csproj" />
-      <ProjectReference Include="..\Hycon.Interfaces\Hycon.Interfaces.csproj" />
+      <PackageReference Include="Microsoft.CSharp" Version="4.5.0" />
     </ItemGroup>
 
 </Project>

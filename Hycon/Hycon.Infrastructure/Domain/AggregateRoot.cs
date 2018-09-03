@@ -5,9 +5,9 @@ using Hycon.Interfaces.Domain;
 
 namespace Hycon.Infrastructure.Domain
 {
-    public abstract class AggregateBase : IAggregate
+    public abstract class AggregateRoot : IAggregate
     {        
-        public Guid Key { get; private set; }
+        public Guid Id { get; protected set; }
         private readonly List<IEvent> _changes = new List<IEvent>();
 
         public long Version { get; private set; }
@@ -24,18 +24,21 @@ namespace Hycon.Infrastructure.Domain
                 _changes.Clear();                
         }    
 
-        protected virtual void When(IEvent e)
+        protected void When(IEvent e)
         {
             lock (_changes)
             {
+                ApplyEvent(e);
                 Version++;
                 _changes.Add(e);
             }
         }
 
+        protected virtual void ApplyEvent(IEvent e) {}
+
         public T LoadFrom<T>(Guid id, IEnumerable<IEvent> pastEvents) where T : class,IAggregate
         {
-            Key = id;
+            Id = id;
             foreach (var e in pastEvents)
                 When(e);
 

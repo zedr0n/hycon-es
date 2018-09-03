@@ -9,7 +9,7 @@ namespace Hycon.Interfaces
         /// <summary>
         /// Unique event id
         /// </summary>
-        Guid EventId { get; }
+        Guid EventId { get; set; }
         /// <summary>
         /// Event Unix epoch timestamp
         /// </summary>

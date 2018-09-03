@@ -35,10 +35,13 @@ namespace Hycon.Infrastructure.Domain
             var stream = _streams.GetOrAdd(aggregate);
             if ((await _eventStore.ReadStream(stream, expectedVersion)).Any())
                 throw new ConcurrencyException(stream.Key);
-            
+
             foreach (var @event in events)
+            {
+                @event.EventId = Guid.NewGuid(); 
                 @event.Timestamp = _clock.GetCurrentInstant().ToUnixTimeMilliseconds();
-            
+            }
+                   
             await _eventStore.WriteStream(stream, events);    
         }
 

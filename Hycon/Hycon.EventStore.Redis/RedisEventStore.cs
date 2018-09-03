@@ -10,6 +10,7 @@ using Hycon.Infrastructure.Domain;
 using Hycon.Infrastructure.Exceptions;
 using Hycon.Infrastructure.Streams;
 using Hycon.Interfaces;
+using Hycon.Interfaces.Domain;
 using Hycon.Interfaces.EventStore;
 using Hycon.Interfaces.Messaging;
 using Newtonsoft.Json;
@@ -23,7 +24,7 @@ namespace Hycon.EventStore.Redis
 
         private readonly IMessageQueue _messageQueue;
         private readonly IRedisConnection _redis;
-        private readonly RedisKey _streamsKey = "streams";
+        private readonly RedisKey _streamsKey = "EventStore::streams";
 
         public RedisEventStore(IMessageQueue messageQueue, IRedisConnection redis)
         {
@@ -110,12 +111,12 @@ namespace Hycon.EventStore.Redis
         {                        
             foreach (var @event in events)
             {
-                var listKey = stream.Key.ToString();
+                var listKey = $"EventStore::{stream.Key.ToString()}";
                 var eventId = @event.EventId.ToString(); 
 
                 var serializedEvent = JsonConvert.SerializeObject(@event, JsonSerializerSettings);
 
-                var hashKey = eventId.CalculatePartition();
+                var hashKey = $"EventStore::${eventId.CalculatePartition()}";
 
                 // write the event using hash key
                 await Db.HashSetAsync(hashKey, eventId, serializedEvent).ConfigureAwait(false);
@@ -159,6 +160,13 @@ namespace Hycon.EventStore.Redis
 
             //stream.Version += events.Count(); 
             await UpdateStream(stream);
+        }
+
+        public async Task AppendCommand(ICommand command)
+        {
+            await _redis.Database
+                .ListRightPushAsync("commands", JsonConvert.SerializeObject(command, JsonSerializerSettings))
+                .ConfigureAwait(false);
         }
     }
 }

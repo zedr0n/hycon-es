@@ -15,7 +15,7 @@ namespace Hycon.Interfaces.Domain
     
     public interface IAggregate 
     {
-        Guid Key { get; }
+        Guid Id { get; }
         
         /// <summary>
         /// Aggregate version ( for optimistic concurrency )
