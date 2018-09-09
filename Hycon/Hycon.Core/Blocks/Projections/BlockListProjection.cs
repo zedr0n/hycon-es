@@ -16,8 +16,12 @@ namespace Hycon.Core.Blocks.Projections
         
         public BlockListProjection(IEventStore eventStore) : base(eventStore)
         {
-            Start(eventStore.Streams.Where(s => s.AggregateType == typeof(Block)).Select(s => new List<IStream> {s}));
-            //Start(eventStore.Streams.Select(s => new List<IStream> {s}));
+            Register<BlockCreated>(When);
+            
+            eventStore.Streams
+                .Where(s => s.EventSourcedType == typeof(Block))
+                .Select(s => new List<IStream> {s})
+                .Subscribe(async s => await Update(s));
         }
 
         public Guid GetByHash(string hash)
@@ -25,16 +29,14 @@ namespace Hycon.Core.Blocks.Projections
             return _blocks.TryGetValue(hash, out var id) ? id : Guid.Empty;
         }
 
+        public List<string> GetAll()
+        {
+            return _blocks.Keys.ToList();
+        }
+
         private void When(BlockCreated e)
         {
             _blocks[e.Hash] = e.BlockId;
-        }
-        
-        private void When(BlockReceived e) {}
-
-        protected override void When(IEvent e)
-        {
-            When((dynamic) e);
         }
     }
 }

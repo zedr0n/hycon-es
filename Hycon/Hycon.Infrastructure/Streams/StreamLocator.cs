@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Concurrent;
+using Hycon.Interfaces;
 using Hycon.Interfaces.Domain;
 using Hycon.Interfaces.EventStore;
 
@@ -18,9 +19,9 @@ namespace Hycon.Infrastructure.Streams
             });
         }
 
-        public Guid Key(IAggregate aggregate)
+        public Guid Key(IEventSourced es)
         {
-            return aggregate.Id;
+            return es.Id;
         }
 
         public IStream Find(Guid key)
@@ -29,10 +30,10 @@ namespace Hycon.Infrastructure.Streams
             return stream;
         }
 
-        public IStream GetOrAdd(IAggregate aggregate)
+        public IStream GetOrAdd(IEventSourced es)
         {
-            var key = Key(aggregate);
-            var stream = new Stream(key,aggregate.Version, aggregate.GetType());
+            var key = Key(es);
+            var stream = new Stream(key,es.Version, es.GetType());
             return _streams.GetOrAdd(key, stream);
         }
 

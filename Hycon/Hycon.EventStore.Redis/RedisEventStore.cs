@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Reactive.Concurrency;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using System.Threading.Tasks;
@@ -30,17 +31,17 @@ namespace Hycon.EventStore.Redis
         {
             _messageQueue = messageQueue;
             _redis = redis;
-            
+
             Streams = Observable.Create(async (IObserver<IStream> observer) =>
             {
-                var values = await Db.HashValuesAsync(_streamsKey); 
+                var values = await Db.HashValuesAsync(_streamsKey);
                 foreach (var value in values)
                 {
-                    var stream = JsonConvert.DeserializeObject<IStream>(value,JsonSerializerSettings); 
-                    observer.OnNext(stream);                   
+                    var stream = JsonConvert.DeserializeObject<IStream>(value, JsonSerializerSettings);
+                    observer.OnNext(stream);
                 }
-                _streams.Subscribe(observer.OnNext);
-            });
+                observer.OnCompleted();
+            }).Concat(_streams);
 
             BatchStreams = Observable.Create(async (IObserver<List<IStream>> observer) =>
             {
@@ -48,8 +49,8 @@ namespace Hycon.EventStore.Redis
                 var streams = values.Select(s => JsonConvert.DeserializeObject<IStream>(s, JsonSerializerSettings))
                     .ToList();
                 observer.OnNext(streams);
-                _streams.Subscribe(s => observer.OnNext(new List<IStream> { s }));
-            });
+                observer.OnCompleted();
+            }).Concat(_streams.Select(s => new List<IStream> {s}));
         }
 
         private IDatabase Db => _redis.Database;
@@ -112,7 +113,7 @@ namespace Hycon.EventStore.Redis
             foreach (var @event in events)
             {
                 var listKey = $"EventStore::{stream.Key.ToString()}";
-                var eventId = @event.EventId.ToString(); 
+                var eventId = @event.Id.ToString(); 
 
                 var serializedEvent = JsonConvert.SerializeObject(@event, JsonSerializerSettings);
 

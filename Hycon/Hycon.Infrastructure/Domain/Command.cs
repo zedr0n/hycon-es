@@ -1,3 +1,4 @@
+using Hycon.Interfaces;
 using Hycon.Interfaces.Domain;
 
 namespace Hycon.Infrastructure.Domain

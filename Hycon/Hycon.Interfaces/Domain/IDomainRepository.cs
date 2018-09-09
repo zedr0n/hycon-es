@@ -6,17 +6,17 @@ namespace Hycon.Interfaces.Domain
     public interface IDomainRepository
     {
         /// <summary>
-        /// Saves the aggregate events to event store and publish those to event bus
+        /// Saves the events to event store and publish those to event bus
         /// </summary>
-        /// <param name="aggregate">The aggregate instance</param>
-        Task Save<T>(T aggregate) where T : class, IAggregate;
+        /// <param name="es">The event sourced instance</param>
+        Task Save<T>(T es) where T : class, IEventSourced;
 
         /// <summary>
-        /// Rebuild the aggregate from event history extracted from Event Store
+        /// Rebuild from event history extracted from Event Store
         /// </summary>
-        /// <param name="id">The aggregate guid</param>
-        /// <typeparam name="T">Aggregate type</typeparam>
+        /// <param name="id">Event sourced guid</param>
+        /// <typeparam name="T">Event sourced type</typeparam>
         /// <returns>Aggregate or null if no events found</returns>
-        Task<T> Find<T>(Guid id) where T : class, IAggregate,new();
+        Task<T> Find<T>(Guid id) where T : class, IEventSourced,new();
     }
 }

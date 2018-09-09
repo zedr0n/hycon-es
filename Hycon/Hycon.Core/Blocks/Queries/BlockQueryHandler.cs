@@ -14,10 +14,15 @@ namespace Hycon.Core.Blocks.Queries
             _projection = projection;
         }
 
-        public async Task<Guid> Handle(BlockQuery query)
+        public Guid Handle(BlockQuery query)
         {
             var id = _projection.GetByHash(query.Hash);
-            return id;
+            return id; 
+        }
+
+        public async Task<Guid> HandleAsync(BlockQuery query)
+        {
+            throw new NotImplementedException();
         }
     }
 }

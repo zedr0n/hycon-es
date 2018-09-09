@@ -6,14 +6,17 @@ using Hycon.Interfaces;
 
 namespace Hycon.Core.Blocks
 {
-    public class Block : AggregateRoot
+    public class Block : EventSourced
     {
         private string _hash;
         private List<string> _previousHash = new List<string>();
-        
-        public Block() {}
 
-        public Block(Guid id, string hash, List<string> previousHash)
+        public Block()
+        {
+            Register<BlockCreated>(ApplyEvent);
+        }
+
+        public Block(Guid id, string hash, List<string> previousHash) : this()
         {
             Id = id;
             When(new BlockCreated(Id, hash, previousHash));
@@ -23,18 +26,11 @@ namespace Hycon.Core.Blocks
         {
             When( new BlockReceived(Id) ); 
         }
-        
-        protected void ApplyEvent(BlockReceived e) {}
 
-        protected void ApplyEvent(BlockCreated e)
+        private void ApplyEvent(BlockCreated e)
         {
             _hash = e.Hash;
             _previousHash = e.PreviousHash;
-        }
-
-        protected override void ApplyEvent(IEvent e)
-        {
-            ApplyEvent((dynamic) e);
         }
     }
 }

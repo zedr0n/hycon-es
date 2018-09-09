@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Hycon.Infrastructure.Exceptions;
+using Hycon.Interfaces;
 using Hycon.Interfaces.Domain;
 using Hycon.Interfaces.EventStore;
 using NodaTime;
@@ -21,31 +22,31 @@ namespace Hycon.Infrastructure.Domain
             _clock = clock;
         }
 
-        public async Task Save<T>(T aggregate) where T : class, IAggregate
+        public async Task Save<T>(T es) where T : class, IEventSourced 
         {
-            if (aggregate == null)
+            if (es == null)
                 return;
 
-            var events = aggregate.GetUncommittedEvents().ToList();
+            var events = es.GetUncommittedEvents().ToList();
             if (events.Count == 0)
                 return;
             
-            var expectedVersion = aggregate.Version - events.Count;
+            var expectedVersion = es.Version - events.Count;
             
-            var stream = _streams.GetOrAdd(aggregate);
+            var stream = _streams.GetOrAdd(es);
             if ((await _eventStore.ReadStream(stream, expectedVersion)).Any())
                 throw new ConcurrencyException(stream.Key);
 
             foreach (var @event in events)
             {
-                @event.EventId = Guid.NewGuid(); 
+                @event.Id = Guid.NewGuid(); 
                 @event.Timestamp = _clock.GetCurrentInstant().ToUnixTimeMilliseconds();
             }
                    
             await _eventStore.WriteStream(stream, events);    
         }
 
-        public async Task<T> Find<T>(Guid id) where T : class, IAggregate, new()
+        public async Task<T> Find<T>(Guid id) where T : class, IEventSourced, new()
         {
             var stream = _streams.Find(id);
             if (stream == null)

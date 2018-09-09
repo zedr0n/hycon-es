@@ -1,4 +1,5 @@
 using System.Threading.Tasks;
+using Hycon.Interfaces;
 using Hycon.Interfaces.Domain;
 
 namespace Hycon.Infrastructure.Pipes

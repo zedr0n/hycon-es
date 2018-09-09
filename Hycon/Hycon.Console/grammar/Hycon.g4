@@ -4,11 +4,12 @@ grammar Hycon;
   Parser rules
 */
 
-command : create | putBlock;
+command : create | putBlock | listBlocks;
 
 create : CREATE ( createBlock );
 createBlock : BLOCK hash previousHash;
 putBlock : PUT BLOCK hash previousHash;
+listBlocks : LIST BLOCK;
 
 date : NUMBER NUMBER;
 hash : HASH;
@@ -54,6 +55,7 @@ CREATE : C R E A T E;
 BLOCK : B L O C K;
 GUID : G U I D;
 PUT : P U T;
+LIST : L I S T;
 
 WORD                : (LOWERCASE | UPPERCASE | '-')+ ;
 HASH                : (LOWERCASE | UPPERCASE | DIGIT)+ ;

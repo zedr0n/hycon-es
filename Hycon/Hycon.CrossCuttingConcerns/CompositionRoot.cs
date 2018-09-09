@@ -41,7 +41,8 @@ namespace Hycon.CrossCuttingConcerns
             container.Register<BlockListProjection>(Lifestyle.Singleton);
             container.Register(typeof(IQueryHandler<,>), new[]
             {
-                typeof(BlockQueryHandler)
+                typeof(BlockQueryHandler),
+                typeof(BlockListQueryHandler)
             }, Lifestyle.Singleton);
         }
     }

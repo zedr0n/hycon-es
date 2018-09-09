@@ -1,4 +1,4 @@
-namespace Hycon.Interfaces.Domain
+namespace Hycon.Interfaces
 {
     public interface ICommand
     {

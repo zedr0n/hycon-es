@@ -2,6 +2,7 @@ using System;
 using System.Threading.Tasks;
 using Hycon.Infrastructure.Logging;
 using Hycon.Infrastructure.Pipes;
+using Hycon.Interfaces;
 using Hycon.Interfaces.Domain;
 using SimpleInjector;
 
@@ -10,7 +11,6 @@ namespace Hycon.CrossCuttingConcerns
     public class Bus : IBus
     {
         private readonly Container _container;
-        private readonly Func<Type, object> _activator;
         private readonly ILog _log;
 
         private object GetInstance(Type type)
@@ -60,11 +60,7 @@ namespace Hycon.CrossCuttingConcerns
             var handlerType = typeof(IQueryHandler<,>).MakeGenericType(query.GetType(), typeof(TResult));
             dynamic handler = GetInstance(handlerType);
             if (handler != null)
-            {
-                var task = handler.Handle(query as dynamic) as Task<TResult>;
-                if (task != null && task.IsCompleted)
-                    return task.Result;
-            }
+                return handler.Handle(query as dynamic);
             return default(TResult);            
         }
         public async Task<TResult> QueryAsync<TResult>(IQuery<TResult> query)

@@ -8,6 +8,7 @@ namespace Hycon.CrossCuttingConcerns
     {
         public async Task PublishAsync(IEvent e)
         {
+            
         }
     }
 }

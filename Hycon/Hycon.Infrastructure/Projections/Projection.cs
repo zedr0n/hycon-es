@@ -13,15 +13,18 @@ namespace Hycon.Infrastructure.Projections
     {
         private readonly IEventStore _eventStore;
         private readonly ConcurrentDictionary<Guid, long> _streams = new ConcurrentDictionary<Guid, long>();
+        private readonly Dictionary<Type, Action<IEvent>> _handlers = new Dictionary<Type, Action<IEvent>>();
 
-        public Projection(IEventStore eventStore)
+        protected Projection(IEventStore eventStore)
         {
             _eventStore = eventStore;
-            //Streams = _eventStore.BatchStreams;
         }
 
-        protected virtual IObservable<IEnumerable<IStream>> Streams { get; set; }
-
+        protected void Register<TEvent>(Action<TEvent> when) where TEvent : class
+        {
+            _handlers.Add(typeof(TEvent), e => when(e as TEvent)); 
+        }
+        
         protected async Task Update(IEnumerable<IStream> streams)
         {
             var events = new List<IEvent>();
@@ -38,14 +41,13 @@ namespace Hycon.Infrastructure.Projections
                 When(e);
         }
 
-        protected virtual void When(IEvent e)
+        protected void When(IEvent e)
         {
-                        
-        }
-        
-        protected void Start(IObservable<IEnumerable<IStream>> streams)
-        {
-            streams.Subscribe(async s => await Update(s));
+            if (e == null)
+                return;
+            
+            if (_handlers.TryGetValue(e.GetType(), out var handler))
+                handler(e);
         }
     }
 }

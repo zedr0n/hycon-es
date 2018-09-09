@@ -9,11 +9,11 @@ namespace Hycon.Infrastructure.Streams
         {
             Key = key;
             Version = version;
-            AggregateType = type;
+            EventSourcedType = type;
         }
 
         public Guid Key { get; }
         public long Version { get; set; }
-        public Type AggregateType { get; set; }
+        public Type EventSourcedType { get; set; }
     }
 }

@@ -13,7 +13,7 @@ namespace Hycon.Interfaces.EventStore
         /// Last stream event version
         /// </summary>
         long Version { get; set; }
-        Type AggregateType { get; set; }
+        Type EventSourcedType { get; set; }
     }
 
     public interface IStreamLocator
@@ -22,9 +22,9 @@ namespace Hycon.Interfaces.EventStore
         /// <summary>
         /// Generate key from aggregate instance
         /// </summary>
-        /// <param name="aggregate"></param>
+        /// <param name="es"></param>
         /// <returns></returns>
-        Guid Key(IAggregate aggregate);
+        Guid Key(IEventSourced es);
 
         /// <summary>
         /// Get the stream with the given id
@@ -36,9 +36,9 @@ namespace Hycon.Interfaces.EventStore
         /// <summary>
         /// Extract and cache the stream details for aggregate
         /// </summary>
-        /// <param name="aggregate"></param>
+        /// <param name="es"></param>
         /// <returns></returns>
-        IStream GetOrAdd(IAggregate aggregate);
+        IStream GetOrAdd(IEventSourced es);
         /// <summary>
         /// Extract and cache the stream details for the target stream
         /// </summary>

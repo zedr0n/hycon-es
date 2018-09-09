@@ -11,6 +11,13 @@ namespace Hycon.Interfaces.Domain
         /// </summary>
         /// <param name="query"> Query object </param>
         /// <returns>Query result</returns>
-        Task<TResult> Handle(TQuery query);
+        TResult Handle(TQuery query);
+        
+        /// <summary>
+        /// Query handler processor ( can be overriden via decorators )
+        /// </summary>
+        /// <param name="query"> Query object </param>
+        /// <returns>Query result</returns>
+        Task<TResult> HandleAsync(TQuery query);
     }
 }
